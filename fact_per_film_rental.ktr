@@ -69,7 +69,7 @@
   <created_date>2018&#x2f;03&#x2f;05 11&#x3a;17&#x3a;23.275</created_date>
   <modified_user>-</modified_user>
   <modified_date>2018&#x2f;03&#x2f;05 11&#x3a;17&#x3a;23.275</modified_date>
-    <key_for_session_key/>
+    <key_for_session_key>H4sIAAAAAAAAAAMAAAAAAAAAAAA&#x3d;</key_for_session_key>
     <is_key_private>N</is_key_private>
   </info>
   <notepads>
@@ -81,8 +81,8 @@
     <access>Native</access>
     <database>dw_gochiflix</database>
     <port>5432</port>
-    <username>postgres</username>
-    <password>Encrypted 2be98afc86aa7f2e4fa418c62d19cacd5</password>
+    <username>dw_gochiflix</username>
+    <password>Encrypted 2be98afc80ed0ad83a41aa679d89ea6c2</password>
     <servername/>
     <data_tablespace/>
     <index_tablespace/>
@@ -101,7 +101,7 @@
   <order>
   </order>
   <step>
-    <name>Table input</name>
+    <name>dim_film</name>
     <type>TableInput</type>
     <description/>
     <distribute>Y</distribute>
@@ -112,7 +112,7 @@
            <schema_name/>
            </partitioning>
     <connection>dw_gochiflix</connection>
-    <sql>CREATE OR REPLACE FUNCTION public.esperasv&#x28;&#x29;&#xd;&#xa; RETURNS varchar&#x28;100&#x29;&#xd;&#xa; LANGUAGE plpgsql&#xd;&#xa;AS &#x24;function&#x24;&#xd;&#xa;DECLARE&#xd;&#xa;    &#xd;&#xa;    curs CURSOR FOR&#xd;&#xa;    select title, rental_date as &#x22;date&#x22;, 0 as &#x22;type&#x22; from inventory join film using&#x28;film_id&#x29; join rental using&#x28;inventory_id&#x29;&#xd;&#xa; 	UNION&#xd;&#xa; 	select title, return_date as &#x22;date&#x22;, 1 as &#x22;type&#x22; from inventory join film using&#x28;film_id&#x29; join rental using&#x28;inventory_id&#x29; order by title, date&#x3b;&#xd;&#xa;	&#xd;&#xa;    fila record&#x3b;&#xd;&#xa;    titulo film.title&#x25;type&#x3b;&#xd;&#xa;    contador int&#x3b;&#xd;&#xa;    esperas int&#x3b;&#xd;&#xa;    total int&#x3b;&#xd;&#xa;    last_date date&#x3b;&#xd;&#xa;    retorno varchar&#x28;100&#x29;&#x3b;&#xd;&#xa;&#xd;&#xa;BEGIN&#xd;&#xa;	&#xd;&#xa;	FOR	fila in curs loop&#xd;&#xa;    	if titulo &#x3d; fila.title then&#xd;&#xa;            if fila.type &#x3d; 0 then&#xd;&#xa;--            	raise notice &#x27;rentar&#x27;&#x3b;&#xd;&#xa;            	if contador &#x3e; 0 then&#xd;&#xa;--                	raise notice &#x27;rentado&#x27;&#x3b;&#xd;&#xa;            		contador &#x3a;&#x3d; contador - 1&#x3b;&#xd;&#xa;--                    raise notice &#x27;last_date&#x3a; &#x25; date&#x3a; &#x25;&#x27;,last_date,fila.date&#x3b;&#xd;&#xa;                    if extract&#x28;year from fila.date - last_date&#x29; &#x3d; 0 and extract&#x28;month from fila.date - last_date&#x29; &#x3d; 0 and extract&#x28;day from fila.date - last_date&#x29; &#x3d; 0 and &#x28;extract&#x28;hour from fila.date - last_date&#x29; &#x3c; 3 or extract&#x28;hour from fila.date - last_date&#x29; &#x3d; 3 and extract&#x28;minute from fila.date - last_date&#x29; &#x3d; 0 and extract&#x28;second from fila.date - last_date&#x29; &#x3d; 0&#x29; then&#xd;&#xa;--                    	raise notice &#x27;espera&#x2b;&#x2b;&#x27;&#x3b;&#xd;&#xa;                        esperas &#x3a;&#x3d; esperas &#x2b; 1&#x3b;&#xd;&#xa;                        retorno &#x3a;&#x3d; title&#x3b;&#xd;&#xa;                    end if&#x3b;&#xd;&#xa;                end if&#x3b;	&#xd;&#xa;            elsif fila.date is not null then&#xd;&#xa;--            	raise notice &#x27;devolver&#x27;&#x3b;&#xd;&#xa;            	if contador &#x3c; total then&#xd;&#xa;--                	raise notice &#x27;devuelto&#x27;&#x3b;&#xd;&#xa;                	contador &#x3a;&#x3d; contador &#x2b; 1&#x3b;&#xd;&#xa;                	if contador &#x3d; 1 then&#xd;&#xa;--                    	raise notice &#x27;last_date&#x27;&#x3b;&#xd;&#xa;                    	last_date &#x3a;&#x3d; fila.date&#x3b;&#xd;&#xa;                    end if&#x3b;&#xd;&#xa;                end if&#x3b;&#xd;&#xa;            end if&#x3b;            &#xd;&#xa;        else&#xd;&#xa;        	raise notice &#x27;titulo&#x3a; &#x25;, esperas&#x3a; &#x25;&#x27;,titulo,esperas&#x3b;&#xd;&#xa;    		titulo &#x3a;&#x3d; fila.title&#x3b;&#xd;&#xa;            last_date &#x3a;&#x3d; null&#x3b;&#xd;&#xa;            esperas &#x3a;&#x3d; 0&#x3b;&#xd;&#xa;            select into total count&#x28;&#x2a;&#x29; from film join inventory using&#x28;film_id&#x29; where film.title &#x3d; fila.title&#x3b;&#xd;&#xa;        	if fila.type &#x3d; 0 then&#xd;&#xa;            	contador &#x3a;&#x3d; total - 1&#x3b;&#xd;&#xa;            else&#xd;&#xa;                contador &#x3a;&#x3d; total&#x3b;&#xd;&#xa;            end if&#x3b;&#xd;&#xa;--            raise notice &#x27;titulo&#x3a; &#x25; total&#x3a; &#x25;&#x27;,titulo,total&#x3b;&#xd;&#xa;        end if&#x3b;&#xd;&#xa;    end loop&#x3b;&#xd;&#xa;    &#xd;&#xa;    return retorno&#x3b;&#xd;&#xa;END &#x24;function&#x24;&#x3b;&#xd;&#xa;&#xd;&#xa;select esperasv&#x28;&#x29;&#x3b;</sql>
+    <sql>SELECT&#xd;&#xa;  film_id&#xd;&#xa;, original_id&#xd;&#xa;, title&#xd;&#xa;, languaje&#xd;&#xa;, rental_duration&#xd;&#xa;, rating&#xd;&#xa;FROM dim_film&#xd;&#xa;</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>
@@ -120,8 +120,60 @@
     <lazy_conversion_active>N</lazy_conversion_active>
      <cluster_schema/>
  <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
-      <xloc>100</xloc>
-      <yloc>125</yloc>
+      <xloc>75</xloc>
+      <yloc>150</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>dim_staff</name>
+    <type>TableInput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <connection>dw_gochiflix</connection>
+    <sql>SELECT&#xd;&#xa;  staff_id&#xd;&#xa;, original_id&#xd;&#xa;, first_name&#xd;&#xa;, last_name&#xd;&#xa;FROM dim_staff&#xd;&#xa;</sql>
+    <limit>0</limit>
+    <lookup/>
+    <execute_each_row>N</execute_each_row>
+    <variables_active>N</variables_active>
+    <lazy_conversion_active>N</lazy_conversion_active>
+     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>75</xloc>
+      <yloc>50</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>dim_time</name>
+    <type>TableInput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <connection>dw_gochiflix</connection>
+    <sql>SELECT&#xd;&#xa;  time_id&#xd;&#xa;, original_id&#xd;&#xa;, &#x22;date&#x22;&#xd;&#xa;, &#x22;day_&#x22;&#xd;&#xa;, &#x22;month_&#x22;&#xd;&#xa;, &#x22;year_&#x22;&#xd;&#xa;FROM dim_time&#xd;&#xa;</sql>
+    <limit>0</limit>
+    <lookup/>
+    <execute_each_row>N</execute_each_row>
+    <variables_active>N</variables_active>
+    <lazy_conversion_active>N</lazy_conversion_active>
+     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>75</xloc>
+      <yloc>250</yloc>
       <draw>Y</draw>
       </GUI>
     </step>
