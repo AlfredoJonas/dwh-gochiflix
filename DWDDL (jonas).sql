@@ -96,8 +96,20 @@ CREATE TABLE fact_per_film_rental
     , wait_quantity          NUMERIC(5)
 	, quantity          NUMERIC(10)
     , revenue       NUMERIC(10,2)
-	, avg_time NUMERIC(5,2)
+	, avg_time CHARACTER VARYING
 	, primary key (time_id, film_id, staff_id, store_id)
+    );
+
+-- HECHO: TABLA AUXILIAR
+
+CREATE TABLE fact_per_film_rental_aux
+    ( time_id         INTEGER REFERENCES dim_time(time_id)
+    , film_id          INTEGER REFERENCES dim_film(film_id)
+    , staff_id       INTEGER REFERENCES dim_staff(staff_id)
+    , store_id         INTEGER REFERENCES dim_store(store_id)
+    , rental_date          timestamp without time zone NOT NULL
+    , return_date          timestamp without time zone
+    , amount       numeric(5,2) NOT NULL
     );
 
 -- HECHO: BENEFICIO POR CLIENTE Y POR CATEGORIAS
@@ -109,7 +121,7 @@ CREATE TABLE fact_client_category_rental
     , store_id         INTEGER REFERENCES dim_store(store_id)
 	, quantity          NUMERIC(10)
     , revenue       NUMERIC(10,2)
-	, avg_time NUMERIC(5,2)
+	, avg_time CHARACTER VARYING
 	, primary key (time_id, client_id, category_id, store_id)
     );
 
@@ -134,7 +146,20 @@ CREATE TABLE fact_client_actor_rental
     , store_id         INTEGER REFERENCES dim_store(store_id)
 	, quantity          NUMERIC(10)
     , revenue       NUMERIC(10,2)
-	, avg_time NUMERIC(5,2)
+	, avg_time CHARACTER VARYING
 	, primary key (time_id, client_id, actor_id, store_id)
     );
+
+-- HECHO: TABLA AUXILIAR
+
+CREATE TABLE fact_client_actor_rental_aux
+    ( time_id         INTEGER REFERENCES dim_time(time_id)
+    , client_id          INTEGER REFERENCES dim_client(client_id)
+    , actor_id       INTEGER REFERENCES dim_actor(actor_id)
+    , store_id         INTEGER REFERENCES dim_store(store_id)
+	, rental_date          timestamp without time zone NOT NULL
+    , return_date          timestamp without time zone
+    , amount       numeric(5,2) NOT NULL
+    );
+
 
