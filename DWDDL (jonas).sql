@@ -163,3 +163,64 @@ CREATE TABLE fact_client_actor_rental_aux
     );
 
 
+
+
+CREATE OR REPLACE FUNCTION public.calculate_wait_quantity
+(fecha date, tienda_id int, pelicula_id	int)
+    RETURNS int
+    LANGUAGE 'plpgsql'
+    COST 100.0
+    VOLATILE 
+AS $function$
+
+DECLARE
+    
+    curs CURSOR FOR
+    select title, rental_date as "date", 0 as "type" from inventory join film using(film_id) join rental using(inventory_id) where store_id = tienda_id and rental_date = fecha and film_id = pelicula_id
+ 	UNION
+ 	select title, return_date as "date", 1 as "type" from inventory join film using(film_id) join rental using(inventory_id) where store_id = tienda_id and return_date = fecha and film_id = pelicula_id order by title, date;
+	
+    fila record;
+    titulo film.title%type;
+    contador int;
+    esperas int:=0;
+    total int;
+    last_date date;
+
+BEGIN
+	select into total count(*) from film join inventory using(film_id) where film_id = pelicula_id;
+
+	FOR	fila in curs loop
+    		
+            if fila.type = 0 then
+--            	raise notice 'rentar';
+            	if contador > 0 then
+--                	raise notice 'rentado';
+            		contador := contador - 1;
+--                    raise notice 'last_date: % date: %',last_date,fila.date;
+                    if extract(year from fila.date - last_date) = 0 and extract(month from fila.date - last_date) = 0 and extract(day from fila.date - last_date) = 0 and (extract(hour from fila.date - last_date) < 3 or extract(hour from fila.date - last_date) = 3 and extract(minute from fila.date - last_date) = 0 and extract(second from fila.date - last_date) = 0) then
+                    	raise notice 'espera++';
+                        esperas := esperas + 1;
+                    end if;
+                end if;	
+            elsif fila.date is not null then
+--            	raise notice 'devolver';
+            	if contador < total then
+--                	raise notice 'devuelto';
+                	contador := contador + 1;
+                	if contador = 1 then
+--                    	raise notice 'last_date';
+                    	last_date := fila.date;
+                    end if;
+                end if;
+            end if;            
+    end loop;
+    
+    return esperas;
+END 
+$function$;
+
+ALTER FUNCTION public.esperas()
+    OWNER TO postgres;
+       
+ select calculate_wait_quantity(to_date('2005-05-24', 'DD MM YYYY'), 1, 333);

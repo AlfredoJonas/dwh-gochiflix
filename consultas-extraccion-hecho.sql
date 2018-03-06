@@ -7,8 +7,9 @@ select
 	f.film_id,
 	count(*) as quantity,
 	sum(pay.amount) as revenue,
-	avg(rent.return_date - rent.rental_date) as avg_time,
-	calculate_wait_quantity( rent.rental_date::date as "date", sto.store_id, st.staff_id, f.film_id ) as wait_quantity
+	avg(coalesce(rent.return_date,now()) - rent.rental_date) as avg_time,
+	-- calculate_wait_quantity( rent.rental_date::date as "date", sto.store_id, st.staff_id, f.film_id ) as wait_quantity
+	calculate_wait_quantity( rent.rental_date::date, sto.store_id, f.film_id ) as wait_quantity
 from rental rent
 join customer cust on rent.customer_id = cust.customer_id
 join inventory inv on rent.inventory_id = inv.inventory_id
