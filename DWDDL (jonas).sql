@@ -113,6 +113,18 @@ CREATE TABLE fact_client_category_rental
 	, primary key (time_id, client_id, category_id, store_id)
     );
 
+-- HECHO: TABLA AUXILIAR
+
+CREATE TABLE fact_client_category_rental_aux
+    ( time_id         INTEGER REFERENCES dim_time(time_id)
+    , client_id          INTEGER REFERENCES dim_client(client_id)
+    , category_id       INTEGER REFERENCES dim_category(category_id)
+    , store_id         INTEGER REFERENCES dim_store(store_id)
+	, rental_date          timestamp without time zone NOT NULL
+    , return_date          timestamp without time zone
+    , amount       numeric(5,2) NOT NULL
+    );
+
 -- HECHO: BENEFICIO POR CLIENTE Y POR ACTOR
 
 CREATE TABLE fact_client_actor_rental
