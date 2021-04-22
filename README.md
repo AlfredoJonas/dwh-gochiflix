@@ -1,1 +1,1 @@
-# dwh-gochiflix
+# Building a data ware house using Pentaho
